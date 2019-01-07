@@ -14,6 +14,9 @@ module.exports = {
       content: {
         type: Sequelize.TEXT
       },
+      NotebookId: {
+        type: Sequelize.INTEGER
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
