@@ -1,10 +1,13 @@
       const router = require('express').Router(),
  { Notebook, Note } = require('../models'),
          Sequelize = require('sequelize'),
-                Op = Sequelize.Op
+       verifyToken = require('../auth/authHelp').verifyToken,
+               jwt = require('jsonwebtoken'),
+            SECRET = process.env.SECRET || 'secret';
 
 router
   .route('/:id/notes')
+  .all(verifyToken, checkUser)
   .get((req, res, next) => {
     Note.findAll({
       where: {
@@ -19,6 +22,7 @@ router
 
 router
   .route('/:id')
+  .all(verifyToken, checkUser)
   .get((req, res, next) => {
     Notebook.findByPk(req.params.id)
     .then(notebook => res.json(notebook))
@@ -31,18 +35,38 @@ router
     })
   })
   .delete((req, res, next) => {
-    Notebook.findByPk(req.params.id)
-    .then(notebook => {
-      res.json(notebook.destroy())
-    })
+      Notebook.findByPk(req.params.id)
+      .then(notebook => {
+        notebook.destroy()
+      })
   })
 
 router
   .route('/')
   .get((req, res, next) => {
-    // res.status(200).send("Notebook is online.")
     Notebook.findAll()
     .then(notebook => res.json(notebook))
   })
+
+function checkUser(req, res, next) {
+  jwt.verify(req.token, SECRET, (err, authData) => {
+    const { user } = authData;
+    if(err) {
+      res.sendStatus(403);
+    } else {
+      Notebook.findOne({
+        where: {
+          UserId: user.id
+        }
+      }).then(notebook => {
+        if (notebook){
+          next();
+        } else {
+          res.sendStatus(403);
+        }
+      })
+    }
+  })
+}
 
   module.exports = router;
