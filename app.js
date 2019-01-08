@@ -6,7 +6,8 @@ const logger = require('morgan');
 
 const indexRouter = require('./api/index');
 const usersRouter = require('./api/users');
-
+const notebookRouter = require('./api/notebooks');
+const noteRouter = require('./api/notes');
 const app = express();
 
 app.use(logger('dev'));
@@ -21,5 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/notebooks', notebookRouter);
+app.use('/notes', noteRouter);
 
 module.exports = app;

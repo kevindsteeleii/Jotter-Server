@@ -1,5 +1,7 @@
 const router = require('express').Router();
-const { User, Deck } = require('../models');
+const { User, Notebook } = require('../models');
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 /* GET users listing. */
 router
   .route('/login')
@@ -21,24 +23,33 @@ router
   })
 
 router
+  .route('/:id/notebooks')  
+  .get((req, res, next) => {
+    Notebook.findAll({
+      where: {
+        UserId: req.params.id
+      }
+    }).then(notebooks => res.json(notebooks))
+  })
+  .post((req, res, next) => {
+    Notebook.create({...req.body.notebook, UserId: req.params.id})
+    .then(notebook => res.json(notebook))
+  })
+
+router
   .route('/')
   .all((req, res, next) => {
     next();
   })
   .get((req, res) => {
     User.findAll({
-      attributes: ['id', 'email']
+      attributes: ['id', 'username','email']
     }).then(users => res.json(users))
   })
   .post((req, res) => {
-    console.log('\n',req.body);
-    // debugger
     const { username, email, password } = req.body.user;
-    return User.create({ username, email, password })
-    .then(user => res.json(user))
+    User.create({ username, email, password })
+    .then(user => res.json({user: { username: user.username, id: user.id, email: user.email}}))
   })
-// router.get('/', function(req, res, next) {
-//   res.send('respond with a resource');
-// });
 
 module.exports = router;
